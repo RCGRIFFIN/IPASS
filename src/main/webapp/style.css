@@ -1,0 +1,99 @@
+#topBar{
+    white-space: nowrap;
+    background-color: lightgray;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20;
+    height: 50px;
+    display: block;
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+}
+
+#navBox{
+    border: solid black 3px;
+    display: block;
+    height: 110px;
+}
+
+#pageTitle{
+    font-family: Arial, Helvetica, sans-serif;
+    margin-left: 10px;
+    position: absolute;
+    line-height: 44px;
+}
+
+#accName{
+    font-family: Arial, Helvetica, sans-serif;
+    border-left: solid black 2px;
+    line-height: 50px;
+    height: 50px;
+    width: 200px;
+    float: right;
+    position: relative;
+    padding-left: 10px;
+}
+
+#userIconImg{
+    border: solid black 2px;
+    margin: 1px;
+    float: right;
+    position: relative;
+    height: 44px;
+}
+
+.linkButton{
+    text-align: center;
+    white-space: nowrap;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20;
+    height: 20px;
+    width: 200px;
+    padding: 10px;
+    margin-left: 10px;
+    padding-top: 10px;
+    background-color: lightgray;
+    float: left;
+}
+.linkButtonRight{
+    text-align: center;
+    white-space: nowrap;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20;
+    height: 20px;
+    width: 200px;
+    padding: 10px;
+    margin-right: 10px;
+    padding-top: 10px;
+    background-color: lightgray;
+    float: right;
+}
+
+#autoTableBar{
+    white-space: nowrap;
+    background-color: lightgray;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20;
+    line-height: 50px;
+    height: 50px;
+    display: block;
+    padding-left: 10px;
+    border: 0px;
+}
+#addCarButton{
+    float: right;
+    margin: 10px;
+    width: 150px;
+    height: 30px;
+}
+table{
+    width: 100%;
+    background-color: whitesmoke;
+    padding: 5px;
+    border: 2px solid black;
+    border-radius: 7px;
+}
+
+body{
+    margin:0px;
+}
