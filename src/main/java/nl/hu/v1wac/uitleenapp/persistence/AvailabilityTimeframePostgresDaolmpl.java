@@ -15,7 +15,7 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 	public List<AvailabilityTimeframe> findAvailableByCar(Car car) {
 		ArrayList<AvailabilityTimeframe> timeframes = null;
 		
-		String query = "SELECT timeframe_id, start_, end_ FROM availability_timeframe WHERE car_id = ?";
+		String query = "SELECT timeframe_id, start_, end_, user_id FROM availability_timeframe WHERE car_id = ?";
 		
 		
 		Connection connection = getConnection();
@@ -31,7 +31,8 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 						resultSet.getInt(1),
 						resultSet.getTimestamp(2),
 						resultSet.getTimestamp(3),
-						car.getCarId()
+						car.getCarId(),
+						resultSet.getInt(4)
 						));
 			}
 			
@@ -48,7 +49,7 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 
 	@Override
 	public boolean save(AvailabilityTimeframe timeframe) {
-		String query = "INSERT INTO availability_timeframe (timeframe_id, start_, end_, car_id) VALUES (?, ?, ?, ?)";
+		String query = "INSERT INTO availability_timeframe (timeframe_id, start_, end_, car_id, user_id) VALUES (?, ?, ?, ?, ?)";
 		
 		
 		int rowsAffected = 0;
@@ -57,8 +58,12 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 		
 		try {
 			PreparedStatement ps = connection.prepareStatement(query);
+			ps.setInt(1,  timeframe.getTimeframeId());
+			ps.setTimestamp(2,  timeframe.getStart());
+			ps.setTimestamp(3,  timeframe.getEnd());
+			ps.setInt(4, timeframe.getCarId());
+			ps.setInt(5,  timeframe.getUserId());
 			rowsAffected = ps.executeUpdate();
-			
 			connection.close();
 		}
 		catch (Exception e){
@@ -73,7 +78,7 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 
 	@Override
 	public boolean update(AvailabilityTimeframe timeframe) {
-		String query = "UPDATE availability_timeframe SET start_=?, end_=?, car_id=? WHERE timeframe_id=?";
+		String query = "UPDATE availability_timeframe SET start_=?, end_=?, car_id=?, user_id=? WHERE timeframe_id=?";
 		
 		
 		int rowsAffected = 0;
@@ -85,7 +90,8 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 			ps.setTimestamp(1,  timeframe.getStart());
 			ps.setTimestamp(2,  timeframe.getEnd());
 			ps.setInt(3,  timeframe.getCarId());
-			ps.setInt(4, timeframe.getTimeframeId());
+			ps.setInt(4,  timeframe.getUserId());
+			ps.setInt(5, timeframe.getTimeframeId());
 			rowsAffected = ps.executeUpdate();
 			
 			connection.close();
@@ -128,5 +134,39 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 		if (rowsAffected > 0)
 			return true;
 		return false;
+	}
+	
+	public int getNewTimeframeId() {
+		int id = 1;
+		
+		ArrayList<Integer> ids = new ArrayList<Integer>();
+		
+		
+		String query = "SELECT timeframe_id FROM availability_timeframe";
+		
+		
+		Connection connection = getConnection();
+		
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ResultSet resultSet = ps.executeQuery();
+			
+			while (resultSet.next()) {
+				ids.add(resultSet.getInt(1));
+			}
+			connection.close();
+		}
+		catch (Exception e){
+			System.out.println("Error cannot generate new timeframe id:");
+			e.printStackTrace();
+		}
+		
+		for (int i : ids) {
+			if (ids.contains(id))
+				id++;
+			else
+				return id;
+		}
+		return id;
 	}
 }

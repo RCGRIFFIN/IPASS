@@ -34,6 +34,29 @@ public class Car {
 	public double getPricePerKm() {return pricePerKm;}
 	public int getMileage() {return mileage;}
 	
+	public int getReservationsPending() {
+		int reservationsPending = 0;
+		
+		
+		for (LendSession session : lendSessions)
+			if (session.getAccepted() == false)
+				reservationsPending++;
+		
+		return reservationsPending;
+	}
+	
+	public int getPaidPending() {
+		int paidPending = 0;
+		
+		for (LendSession session : lendSessions)
+			if (session.getAccepted() == true && session.getPaid() == false)
+				paidPending++;
+		
+		
+		
+		return paidPending;
+	}
+	
 	public List<AvailabilityTimeframe> getAvailability() {return availability;}
 	public List<LendSession> getLendSessions(){return lendSessions;}
 	

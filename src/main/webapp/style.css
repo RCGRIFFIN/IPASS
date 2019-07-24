@@ -10,10 +10,83 @@
     border: 0px;
 }
 
+#loginArea{
+    display: none;
+}
+
+#newCarForm{
+    background-color: lightgrey;
+}
+
+#errorLabel{
+    display: inline-block;
+    width: 100%;
+    margin: 2px 10px;
+    padding: 2px 0px;
+    color: red;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.inputArea{
+    margin-top: 300px;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+#newAvailableForm{
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+
+.varNameLabel{
+    display: inline-block;
+    width: 150px;
+    margin: 2px 10px;
+    padding: 2px 0px;
+    font-family: Arial, Helvetica, sans-serif;
+    
+}
+
+.altVarNameLabel{
+    display: inline-block;
+    width: 150px;
+    margin: 2px 10px;
+    padding: 2px 0px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.altPropertyRow{
+    display: inline-block;
+    width: 150px;
+    margin: 2px 10px;
+    padding: 2px 0px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.availableInput{
+    width: 150px;
+    margin: 2px 10px;
+    padding: 2px 0px;
+
+}
+
+.availableFormButton{
+    margin: 20px 10px;
+    padding: 2px 0px;
+    width: 100px;
+    float: right;
+}
+
 #navBox{
     border: solid black 3px;
     display: block;
     height: 110px;
+    display: none;
 }
 
 #pageTitle{
@@ -40,6 +113,10 @@
     float: right;
     position: relative;
     height: 44px;
+}
+
+#backButton{
+    float: r;
 }
 
 .linkButton{
@@ -69,7 +146,12 @@
     float: right;
 }
 
-#autoTableBar{
+#carsTableArea{
+	margin-top: 1px;
+    display: none;
+}
+
+.infoBar{
     white-space: nowrap;
     background-color: lightgray;
     font-family: Arial, Helvetica, sans-serif;
@@ -79,6 +161,21 @@
     display: block;
     padding-left: 10px;
     border: 0px;
+    display: none;
+}
+
+th{
+	text-align: left;
+}
+
+td{
+	border-left: solid grey 1px;
+	padding-left: 4px;
+}
+
+td.button{
+	display: block;
+    width: 100%;
 }
 #addCarButton{
     float: right;
@@ -92,6 +189,7 @@ table{
     padding: 5px;
     border: 2px solid black;
     border-radius: 7px;
+    margin-bottom: 30px;
 }
 
 body{

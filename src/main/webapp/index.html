@@ -22,6 +22,22 @@
             <div id="accName">Account Name</div>
             
         </div>
+        <div class="inputArea" id="loginArea">
+            <form id="loginform">
+                <div class="propertyRow">
+                    <label class="varNameLabel">Gebruikersnaam:</label>
+                    <input type="text" name="username" id="usernameEntry" value="sa@site.com">
+                </div>
+                <div class="propertyRow" id="passwordPropertyRow">
+                    <label class="varNameLabel">Wachtwoord: </label>
+                    <input type="password" name="password" id="passwordEntry" value="asdf">
+                </div>
+                <div class="propertyRow">
+                        <label class="varNameLabel"></label>
+                        <button type="button" id="loginButton">Login</button>
+                </div>                
+            </form>
+        </div>
         <div id="navBox">
             <br><br>
             <a href="" class="linkButton">Reserveer Auto</a>
@@ -29,13 +45,13 @@
             <a href="" class="linkButtonRight">Account toevoegen</a>
             <a href="" class="linkButtonRight">Account beheren</a>
         </div>
-        <div id="autoTableBar">
+        <div class="infoBar" id="autoTableBar">
             Uw auto's (Selecteer om auto te beheren)
             <button id="addCarButton">Auto toevoegen</button>
         </div>
         <div id="carsTableArea">
             <table id="carsTable">
-                    <tr id="countryHeaderRow">
+                    <tr id="tableHeaderRow">
                         <th>Model</th>
                         <th>Kilometerstand</th>
                         <th>Reserveringen in aanvraag</th>

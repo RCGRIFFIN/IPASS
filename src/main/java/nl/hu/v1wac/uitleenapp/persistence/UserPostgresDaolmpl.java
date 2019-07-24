@@ -1,15 +1,20 @@
 package nl.hu.v1wac.uitleenapp.persistence;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.DatatypeConverter;
+
 import nl.hu.v1wac.uitleenapp.model.AvailabilityTimeframe;
 import nl.hu.v1wac.uitleenapp.model.Car;
 import nl.hu.v1wac.uitleenapp.model.LendSession;
 import nl.hu.v1wac.uitleenapp.model.User;
+import nl.hu.v1wac.uitleenapp.webservices.AuthenticationResource;
 
 public class UserPostgresDaolmpl extends PostgresBaseDao implements UserDao{
 	
@@ -62,7 +67,7 @@ public class UserPostgresDaolmpl extends PostgresBaseDao implements UserDao{
 	public User findByUsername(String username) {
 		User user = null;
 		
-		String query = "SELECT user_id, email, passwordhash, role_ FROM user_ where name_=?";
+		String query = "SELECT user_id, name_, passwordhash, role_ FROM user_ where email=?";
 		
 		
 		Connection connection = getConnection();
@@ -75,10 +80,51 @@ public class UserPostgresDaolmpl extends PostgresBaseDao implements UserDao{
 			while (resultSet.next()) {
 				user = new User(
 						resultSet.getInt(1),
+						username,
 						resultSet.getString(2),
 						resultSet.getString(3),
-						resultSet.getString(4),
-						resultSet.getString(5)
+						resultSet.getString(4)
+						);
+				
+				for (LendSession session : new  LendSessionPostgresDaolmpl().findLendSessionByLender(user))
+					user.addLendSession(session);
+				
+				for (Car car : new CarPostgresDaolmpl().findCarsByOwner(user.getUserId()))
+					user.addCar(car);
+			}
+			connection.close();
+		}
+		catch (Exception e){
+			System.out.println("Error cannot find user: " + username);
+			e.printStackTrace();
+		}
+		
+		return user;
+	}
+	
+	public User findByCredentials(String username, String password) {
+		User user = null;
+		
+		
+		String passwordHash = getMD5Hash(password); 
+		
+		String query = "SELECT user_id, name_, role_ FROM user_ where email=? AND passwordhash=?";
+		
+		Connection connection = getConnection();
+		
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ps.setString(1,  username);
+			ps.setString(2,  passwordHash);
+			ResultSet resultSet = ps.executeQuery();
+			
+			while (resultSet.next()) {
+				user = new User(
+						resultSet.getInt(1),
+						username,
+						resultSet.getString(2),
+						passwordHash,
+						resultSet.getString(3)
 						);
 				
 				for (LendSession session : new  LendSessionPostgresDaolmpl().findLendSessionByLender(user))
@@ -246,5 +292,56 @@ public class UserPostgresDaolmpl extends PostgresBaseDao implements UserDao{
 		
 		return false;
 	}
+	
+	public int getNewUserId() {
+		int id = 1;
+		
+		ArrayList<Integer> ids = new ArrayList<Integer>();
+		
+		
+		String query = "SELECT user_id FROM user_";
+		
+		
+		Connection connection = getConnection();
+		
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ResultSet resultSet = ps.executeQuery();
+			
+			while (resultSet.next()) {
+				ids.add(resultSet.getInt(1));
+			}
+			connection.close();
+		}
+		catch (Exception e){
+			System.out.println("Error cannot generate new user id:");
+			e.printStackTrace();
+		}
+		
+		for (int i : ids) {
+			if (ids.contains(id))
+				id++;
+			else
+				return id;
+		}
+		return id;
+	}
 
+	
+	public static String getMD5Hash(String password){
+		
+		MessageDigest md = null;
+		try {
+			md = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}        
+	    byte[] passBytes = password.getBytes();
+	    byte[] passHash = md.digest(passBytes);
+	    
+	    String md5String = DatatypeConverter.printHexBinary(passHash).toLowerCase();
+	    
+	    return md5String;
+	}
 }

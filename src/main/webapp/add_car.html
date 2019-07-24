@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.5">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="./style.css">
+
+    <title>Home</title>
+</head>
+    <body>
+        <header>
+
+        </header>
+        <div id="topBar">
+            <div id="pageTitle">Auto uitleen app</div>
+            <div id="accIcon">
+                <img id="userIconImg" src="images/user-icon.png" alt="">
+            </div>
+            <div id="accName">Account Name</div>
+            
+        </div>
+        <div class="inputArea" id="newCarArea">
+            <div>
+                <label id="errorLabel"></label>
+            </div>
+            <form id="newCarForm">
+                
+                <div class="propertyRow">
+                    <label class="varNameLabel">Model:</label>
+                    <input type="text" name="model" id="modelEntry">
+                </div>
+                <div class="propertyRow" id="mileagePropertyRow">
+                    <label class="varNameLabel">Kilometerstand:</label>
+                    <input type="number" name="mileage" id="mileageEntry" value=0>
+                </div>
+                <div class="propertyRow" id="pricePropertyRow">
+                    <label class="varNameLabel">Prijs per km (€)</label>
+                    <input type="number" step="0.01" value="0.00" placeholder="0.00" name="price" id="priceEntry" value=0>
+                </div>
+                <div class="propertyRow" id="saveButtonPropertyRow">
+                        <label class="varNameLabel"></label>
+                        <button type="button" id="saveButton">Opslaan</button>
+                        <button type="button" id="backButton">Terug</button>
+                </div>                
+            </form>
+        </div>
+        <script type="text/javascript">            
+            function addCar(){  
+                let formData = new FormData(document.querySelector("#newCarForm"));
+                let encData = new URLSearchParams(formData.entries());
+
+                let modelEntry = document.getElementById("modelEntry")
+                let mileageEntry = document.getElementById("mileageEntry")
+                let priceEntry = document.getElementById("priceEntry")
+                let errorLabel = document.getElementById("errorLabel");
+
+                if (modelEntry.value == null || modelEntry.value.length <1){
+                    errorLabel.innerHTML = "Voer een model beschrijving in!";
+                }
+                else if (mileageEntry.value == null || mileageEntry.value.length < 1){
+                    errorLabel.innerHTML = "Voer een kilometerstand in!";
+                }
+                else if (priceEntry.value == null || priceEntry.value.length < 1){
+                    errorLabel.innerHTML = "Voer een prijs per km in!";
+                }
+                else{
+                    fetch("restservices/cars", { 
+                        method: 'POST', 
+                        body: encData,
+                        headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                    })
+                    .then(response =>Promise.all([response.status, response.json()])
+                    .then(function([status, myJson]) {
+                        if (status == 200){
+                            window.location.href = "./index.html"
+                        }
+                    })
+                    .catch(error => console.log(error)))
+                }
+
+
+                
+            }
+
+            function back(){
+                
+                window.location.href = "./index.html"
+            }
+
+            document.querySelector("#saveButton").addEventListener("click", addCar);
+            document.querySelector("#backButton").addEventListener("click", back);
+        </script>
+    </body>
+</html>

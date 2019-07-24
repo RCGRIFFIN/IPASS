@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.5">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="./style.css">
+
+    <title>Beschikbaarheid beheren</title>
+</head>
+    <body>
+        <header>
+
+        </header>
+        <div id="topBar">
+            <div id="pageTitle">Auto uitleen app</div>
+            <div id="accIcon">
+                <img id="userIconImg" src="images/user-icon.png" alt="">
+            </div>
+            <div id="accName">Account Name</div>
+        </div>
+        <div class="infoBar" id="infoBar">
+                
+        </div>
+        <div>
+            <label id="errorLabel"></label>
+        </div>
+        <form id="newAvailableForm">
+            <div class="altPropertyRow">
+                <label class="altVarNameLabel">Begindatum:</label>
+                <input class="availableInput" type="date" name="startDate" id="startDateEntry">
+                <label class="altVarNameLabel">Begintijd:</label>
+                <input class="availableInput" type="time" name="startTime" id="startTimeEntry">
+            </div>
+            <div class="altPropertyRow">
+                <label class="altVarNameLabel">Einddatum:</label>
+                <input class="availableInput" type="date" name="endDate" id="endDateEntry">
+                <label class="altVarNameLabel">Eindtijd:</label>
+                <input class="availableInput" type="time" name="endTime" id="endTimeEntry">
+            </div>
+            <div class="altPpropertyRow" id="saveButtonPropertyRow">
+                    <label class="altVarNameLabel"></label>
+                    <button type="button" class="availableFormButton" id="saveButton">Opslaan</button>
+                    <button type="button" class="availableFormButton" id="backButton">Terug</button>
+            </div>                
+        </form>
+            
+        
+        <div id="paidPendingArea">
+            <table id="paidPendingTable">
+                <tr id="paidPendingHeaderRow">
+                    <th>Begin</th>
+                    <th>Eind</th>
+                    <th>Verwijder</th>
+                </tr>
+            </table>
+        </div>
+
+        <script type="text/javascript"> 
+            function back(){
+                
+                window.location.href = "./manage_car.html"
+            }
+
+            function save(){
+                let formData = new FormData(document.querySelector("#newAvailableForm"));
+                let encData = new URLSearchParams(formData.entries());
+
+
+                let carId = 1;
+                let startDateEntry = document.getElementById("startDateEntry");
+                let startTimeEntry = document.getElementById("startTimeEntry");
+                let endDateEntry = document.getElementById("endDateEntry");
+                let endTimeEntry = document.getElementById("endTimeEntry");
+
+
+                if (startDateEntry.value == null || startDateEntry.value.length <1){
+                    errorLabel.innerHTML = "Voer een begindatum in";
+                }
+                else if (startTimeEntry.value == null || startTimeEntry.value.length <1){
+                    errorLabel.innerHTML = "Voer een begintijd in";
+                }
+                else if (endDateEntry.value == null || endDateEntry.value.length < 1){
+                    errorLabel.innerHTML = "Voer een einddatum in";
+                }
+                else if (endTimeEntry.value == null || endTimeEntry.value.length < 1){
+                    errorLabel.innerHTML = "Voer een eindtijd in";
+                }
+                else if ((endDateEntry.value < startDateEntry.value) ||  (endDateEntry.value == startDateEntry.value && endTimeEntry.value < startTimeEntry.value)){
+                    errorLabel.innerHTML = "De begintijd moet voor de eindtijd zijn.";
+                }
+                else{
+                    errorLabel.innerHTML = "";
+                    fetch("restservices/availability", { 
+                        method: 'POST', 
+                        body: encData,
+                        headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                    })
+                    .then(response =>Promise.all([response.status, response.json()])
+                    .then(function([status, myJson]) {
+                        if (status == 200){
+                            loadAvailable();
+                        }
+                    })
+                    .catch(error => console.log(error)))
+                }
+                
+            }
+
+            function loadAvailable(){
+                let carId = 1;
+
+                fetch("restservices/cars")
+                .then(response =>Promise.all([response.status, response.json()])
+                .then(function([status, myJson]) {
+                    if (status == 200){
+                    
+                        let headersElement = document.getElementById("tableHeaderRow");
+                        
+                        let tableElement = document.getElementById("carsTable").getElementsByTagName("tbody")[0];
+                        
+                        tableElement.innerHTML = "";
+                        
+                        tableElement.appendChild(headersElement);
+
+                        for (let i=0; i < myJson.timeframes.length; i++){
+
+                            
+                            
+                            let row = document.createElement("tr");
+
+                            let timeFrameId = myJson.timeframes[i].timeframeId;
+                            let start = myJson.timeframes[i].start;
+                            let end = myJson.timeframes[i].end;
+
+                            row.setAttribute("id", "row" + carId);
+
+                            let startCell = document.createElement("td");
+                            let startText = document.createTextNode(start);
+                            
+                            startCell.appendChild(startText);
+                            row.appendChild(startCell);
+
+                            let endCell = document.createElement("td");
+                            let endText = document.createTextNode(end);
+                            endCell.appendChild(endText);
+                            row.appendChild(endCell);
+                            
+                            let deleteCell = document.createElement("td");
+                            let deleteButton = document.createElement("Button");
+                            deleteButton.addEventListener("click", function(){removeAvailable(timeframeId, start,)}); 
+                            let deleteText = document.createTextNode("verwijder");
+
+                            deleteButton.appendChild(deleteText);
+                            deleteCell.appendChild(deleteButton);
+                            row.appendChild(deleteButton);
+
+                            tableElement.appendChild(row);
+                        }
+
+                    }
+                    else if (status == 401 || status == 403)
+                        alert("You are not authorised to use this functionality");
+                    else{
+                        console.log(myJson.error);
+                    }
+                }
+                ));
+            }
+
+            function initPage(){
+                loadAvailable();
+            }
+            window.sessionStorage.setItem("selectedCarModel", "Dikke Opel Corsa");
+            
+            document.getElementById("infoBar").style.display = "block";
+            document.getElementById("backButton").addEventListener("click", back);
+            document.getElementById("saveButton").addEventListener("click", save);
+        </script>
+    </body>
+</html>

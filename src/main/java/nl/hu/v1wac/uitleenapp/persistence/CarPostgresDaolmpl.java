@@ -10,6 +10,7 @@ import java.util.List;
 import nl.hu.v1wac.uitleenapp.model.AvailabilityTimeframe;
 import nl.hu.v1wac.uitleenapp.model.Car;
 import nl.hu.v1wac.uitleenapp.model.LendSession;
+import nl.hu.v1wac.uitleenapp.model.User;
 
 public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 
@@ -57,6 +58,12 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 		return cars;
 	}
 	
+	public List<Car> findCarsByOwner(User user){
+		if (user == null)
+			return null;
+		return findCarsByOwner(user.getUserId());
+	}
+	
 	private Car findById(int id) {
 		Car car = null;
 		
@@ -86,8 +93,9 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 					car.addAvailable(timeframe);
 				
 				
-				connection.close();
+				
 			}
+			connection.close();
 		}
 		catch (Exception e){
 			System.out.println("Error cannot find car " + id);
@@ -281,8 +289,16 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 		return false;
 	}
 
+	
+	
+	
 	@Override
 	public boolean delete(Car car) {
+		
+		if (car == null) {
+			return false;
+		}
+		
 		String query = "DELETE FROM car WHERE car_id = ?";
 		
 		
@@ -317,5 +333,39 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 		Car car = this.findById(id);
 		
 		return delete(car);
+	}
+	
+	public int getNewCarId() {
+		int id = 1;
+		
+		ArrayList<Integer> ids = new ArrayList<Integer>();
+		
+		
+		String query = "SELECT car_id FROM car";
+		
+		
+		Connection connection = getConnection();
+		
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ResultSet resultSet = ps.executeQuery();
+			
+			while (resultSet.next()) {
+				ids.add(resultSet.getInt(1));
+			}
+			connection.close();
+		}
+		catch (Exception e){
+			System.out.println("Error cannot generate new car id:");
+			e.printStackTrace();
+		}
+		
+		for (int i : ids) {
+			if (ids.contains(id))
+				id++;
+			else
+				return id;
+		}
+		return id;
 	}
 }

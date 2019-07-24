@@ -32,12 +32,14 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 			boolean accepted;
 			boolean paid;
 			
+			
+			
 			while (resultSet.next()) {
-				if (resultSet.getString(2) == "y")
+				if (resultSet.getInt(2) == 1)
 					accepted = true;
 				else
 					accepted = false;
-				if (resultSet.getString(4) == "y")
+				if (resultSet.getInt(4) == 1)
 					paid = true;
 				else
 					paid = false;
@@ -85,14 +87,16 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 			boolean paid;
 			
 			while (resultSet.next()) {
-				if (resultSet.getString(2) == "y")
+				if (resultSet.getInt(2) == 1)
 					accepted = true;
 				else
 					accepted = false;
-				if (resultSet.getString(4) == "y")
+				if (resultSet.getInt(4) == 1)
 					paid = true;
 				else
 					paid = false;
+				
+				
 				lendSessions.add(new LendSession(
 						resultSet.getInt(1),
 						accepted,
@@ -139,11 +143,12 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 			boolean paid;
 			
 			while (resultSet.next()) {
-				if (resultSet.getString(2) == "y")
+				
+				if (resultSet.getInt(2) == 1)
 					accepted = true;
 				else
 					accepted = false;
-				if (resultSet.getString(4) == "y")
+				if (resultSet.getInt(4) == 1)
 					paid = true;
 				else
 					paid = false;
@@ -192,11 +197,12 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 			boolean paid;
 			
 			while (resultSet.next()) {
-				if (resultSet.getString(2) == "y")
+				
+				if (resultSet.getInt(2) == 1)
 					accepted = true;
 				else
 					accepted = false;
-				if (resultSet.getString(4) == "y")
+				if (resultSet.getInt(4) == 1)
 					paid = true;
 				else
 					paid = false;
@@ -233,18 +239,18 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 		Connection connection = getConnection();
 		
 		
-		String accepted;
-		String paid;
+		int accepted;
+		int paid;
 		
 		if (lendSession.getAccepted())
-			accepted = "y";
+			accepted = 1;
 		else
-			accepted = "n";
+			accepted = 0;
 		
 		if (lendSession.getPaid())
-			paid = "y";
+			paid = 1;
 		else
-			paid = "n";
+			paid = 0;
 		
 		
 		
@@ -252,9 +258,9 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 		try {
 			PreparedStatement ps = connection.prepareStatement(query);
 			ps.setInt(1,  lendSession.getSessionId());
-			ps.setString(2,  accepted);
+			ps.setInt(2,  accepted);
 			ps.setInt(3,  lendSession.getKilometers());
-			ps.setString(4,  paid);
+			ps.setInt(4,  paid);
 			ps.setTimestamp(5,  lendSession.getStart());
 			ps.setTimestamp(6,  lendSession.getEnd());
 			ps.setInt(7,  lendSession.getUserId());
@@ -285,27 +291,27 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 		Connection connection = getConnection();
 		
 		
-		String accepted;
-		String paid;
+		int accepted;
+		int paid;
 		
 		if (lendSession.getAccepted())
-			accepted = "y";
+			accepted = 1;
 		else
-			accepted = "n";
+			accepted = 0;
 		
 		if (lendSession.getPaid())
-			paid = "y";
+			paid = 1;
 		else
-			paid = "n";
+			paid = 0;
 		
 		
 		
 		
 		try {
 			PreparedStatement ps = connection.prepareStatement(query);
-			ps.setString(1,  accepted);
+			ps.setInt(1,  accepted);
 			ps.setInt(2,  lendSession.getKilometers());
-			ps.setString(3,  paid);
+			ps.setInt(3,  paid);
 			ps.setTimestamp(4,  lendSession.getStart());
 			ps.setTimestamp(5,  lendSession.getEnd());
 			ps.setInt(6,  lendSession.getUserId());
@@ -358,4 +364,37 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 		return delete(lendSession.getSessionId());
 	}
 
+	public int getNewSessionId() {
+		int id = 1;
+		
+		ArrayList<Integer> ids = new ArrayList<Integer>();
+		
+		
+		String query = "SELECT session_id FROM lend_session";
+		
+		
+		Connection connection = getConnection();
+		
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ResultSet resultSet = ps.executeQuery();
+			
+			while (resultSet.next()) {
+				ids.add(resultSet.getInt(1));
+			}
+			connection.close();
+		}
+		catch (Exception e){
+			System.out.println("Error cannot generate new session id:");
+			e.printStackTrace();
+		}
+		
+		for (int i : ids) {
+			if (ids.contains(id))
+				id++;
+			else
+				return id;
+		}
+		return id;
+	}
 }
