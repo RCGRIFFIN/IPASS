@@ -14,7 +14,8 @@ function initPage(){
         if (status == 200 && myJson.authenticated == true){
             loadCars();
             let usernameEntry = document.getElementById("usernameEntry");
-            document.getElementById("accountNameLabel").innerHTML = usernameEntry.value;
+            window.sessionStorage.setItem("currentUsername", usernameEntry.value);
+            document.getElementById("accountNameLabel").innerHTML = window.sessionStorage.currentUsername;
             document.getElementById("loginArea").style.display = "none";
             document.getElementById("navBox").style.display = "block";
             document.getElementById("autoTableBar").style.display = "block";
@@ -100,21 +101,25 @@ function loadCars(){
                 row.setAttribute("id", "row" + carId);
 
                 let modelCell = document.createElement("td");
+                modelCell.addEventListener("click", function(){manage(carId, model)});
                 let modelText = document.createTextNode(model);
                 modelCell.appendChild(modelText);
                 row.appendChild(modelCell);
 
                 let mileageCell = document.createElement("td");
+                mileageCell.addEventListener("click", function(){manage(carId, model)});
                 let mileageText = document.createTextNode(mileage);
                 mileageCell.appendChild(mileageText);
                 row.appendChild(mileageCell);
 
                 let reservationsPendingCell = document.createElement("td");
+                reservationsPendingCell.addEventListener("click", function(){manage(carId, model)});
                 let reservationsPendingText = document.createTextNode(reservationsPending);
                 reservationsPendingCell.appendChild(reservationsPendingText);
                 row.appendChild(reservationsPendingCell);
 
                 let paidPendingCell = document.createElement("td");
+                paidPendingCell.addEventListener("click", function(){manage(carId, model)});
                 let paidPendingText = document.createTextNode(paidPending);
                 paidPendingCell.appendChild(paidPendingText);
                 row.appendChild(paidPendingCell);
@@ -128,7 +133,7 @@ function loadCars(){
                 deleteCell.appendChild(deleteButton);
                 row.appendChild(deleteButton);
 
-                row.addEventListener("click", function(){manage(carId, model)});
+                
 
                 tableElement.appendChild(row);
             }
