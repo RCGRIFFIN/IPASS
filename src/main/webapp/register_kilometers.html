@@ -36,8 +36,22 @@
                 </tr>
             </table>
         </div>
-
-        <button type="button" id="backButton">Terug</button>
+     	<div class="inputArea">
+                <form id="registerKilometersForm">
+                <label id="kilometersLabel" class="altVarNameLabel">Kilometerstand:</label>
+                    <div class="altPropertyRow" id="saveButtonPropertyRow">
+                    	<input type="number" step="1" name="mileage" id="registerKilometersEntry" value=0>
+                        <label class="altVarNameLabel"></label>
+                        <button type="button" id="saveButton">Opslaan</button>
+                    </div>                
+                </form>
+                <div class="altPropertyRow" id="mileagePropertyRow">
+                	<label class="altVarNameLabel"></label>
+                    <button type="button" id="backButton">Terug</button>
+               </div>
+                
+         </div>
+        
 
         <script type="text/javascript"> 
             function back(){
@@ -50,6 +64,8 @@
             }
 
             function loadSessions(){
+            	let form = document.getElementById("registerKilometersForm");
+            	form.style.display = "none";
             	fetch("restservices/lendSession/" + sessionStorage.selectedCarId, { 
                     method: 'GET',
                     headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
@@ -103,7 +119,7 @@
 
                             let selectCell = document.createElement("td");
                             let selectInput = document.createElement("Input");
-                            selectInput.addEventListener("change", function(){selectionChanged(sessionId, model, mileage)})
+                            selectInput.addEventListener("change", function(){selectionChanged(sessionId, model)})
                             selectInput.setAttribute("type", "radio");
                             selectInput.setAttribute("name", "registerRadio");
 
@@ -124,32 +140,39 @@
             }
 
             function registerKilometers(){
+            	let sessionId = window.sessionStorage.selectedSessionId;
+                let formData = new FormData(document.querySelector("#registerKilometersForm"));
+                let encData = new URLSearchParams(formData.entries());
+
                 fetch("restservices/lendSession/kilometers/"+ sessionId, {
                     method: 'POST',
+                    body: encData,
                     headers:  {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
                 })
                 .then(response =>Promise.all([response.status, response.json()])
                 .then(function([status, myJson]) {
                     if (status == 200){
                         console.log("session updated");
-                        loadAcceptPending();
+                        loadSessions();
                     }
                     })
                 .catch(error => console.log(error))
                 );
             }
 
-            function selectionChanged(sessionId, model, mileage){
+            function selectionChanged(sessionId, model){
+            	let form = document.getElementById("registerKilometersForm");
+            	form.style.display = "block";
+            	
             	window.sessionStorage.setItem("selectedSessionId", sessionId);
+            	document.getElementById("kilometersLabel").innerHTML = "Kilometerstand voor " + model;
                 console.log(sessionId);
-                console.log(model);
-                console.log(mileage);
             }
 
             document.getElementById("pageTitle").innerHTML = "Registreer kilomterstand voor een geaccepteerde reservering"
 
             document.querySelector("#backButton").addEventListener("click", back);
-           document.querySelector("#opslaanButton").addEventListener("click", back);
+           document.querySelector("#saveButton").addEventListener("click", registerKilometers);
 
             initPage();
         </script>

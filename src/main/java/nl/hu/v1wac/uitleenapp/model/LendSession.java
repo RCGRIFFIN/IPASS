@@ -50,7 +50,7 @@ public class LendSession {
 		
 		this.kilometers = kilometers;
 	}
-	public void setKilometersSubmitte(boolean kilometersSubmitted) {this.kilometersSubmitted = kilometersSubmitted;}
+	public void setKilometersSubmitted(boolean kilometersSubmitted) {this.kilometersSubmitted = kilometersSubmitted;}
 	public void setPaid(boolean paid) {this.paid = paid;}
 	public void setStart(Timestamp start) {this.start = start;}
 	public void setEnd(Timestamp end) {this.end = end;}

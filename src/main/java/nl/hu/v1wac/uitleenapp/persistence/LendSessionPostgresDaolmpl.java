@@ -257,8 +257,62 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 	
 	@Override
 	public List<LendSession> findLendSessionByLenderKilometersPending(User user) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<LendSession> lendSessions = null;
+		
+		String query = "SELECT session_id, accepted, kilometers_submitted,  kilometers, paid, start_, end_, car_id FROM lend_session WHERE user_id = ? AND accepted=1 AND kilometers_submitted = 0";
+		
+		
+		Connection connection = getConnection();
+		
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ps.setInt(1,  user.getUserId());
+			ResultSet resultSet = ps.executeQuery();
+			
+			
+			
+			lendSessions = new ArrayList<LendSession>();
+			
+			boolean accepted;
+			boolean paid;
+			boolean kilometersSubmitted;
+			
+			while (resultSet.next()) {
+				if (resultSet.getInt(2) == 1)
+					accepted = true;
+				else
+					accepted = false;
+				
+				if (resultSet.getInt(3) == 1)
+					kilometersSubmitted = true;
+				else
+					kilometersSubmitted = false;
+				if (resultSet.getInt(5) == 1)
+					paid = true;
+				else
+					paid = false;
+				
+				
+				lendSessions.add(new LendSession(
+						resultSet.getInt(1),
+						accepted,
+						kilometersSubmitted,
+						resultSet.getInt(4),
+						paid,
+						resultSet.getTimestamp(6),
+						resultSet.getTimestamp(7),
+						resultSet.getInt(8),
+						user.getUserId()
+						));
+			}
+			
+			connection.close();
+		}
+		catch (Exception e){
+			System.out.println("Error cannot find lend sessions for user '" + user.getUserId() + "':");
+			e.printStackTrace();
+		}
+		return lendSessions;
 	}
 
 	@Override
@@ -316,8 +370,6 @@ public class LendSessionPostgresDaolmpl extends PostgresBaseDao implements LendS
 			System.out.println("Error cannot find paid pending lend sessions for car '" + carId + "':");
 			e.printStackTrace();
 		}
-		
-		// TODO Auto-generated method stub
 		return lendSessions;
 	}
 

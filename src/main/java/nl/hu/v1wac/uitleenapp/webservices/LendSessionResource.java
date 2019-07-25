@@ -38,7 +38,7 @@ public class LendSessionResource {
 	@RolesAllowed({"admin", "user"})
 	@Path("{carId}")
 	@Produces("application/json")
-	public Response GetLendSession(@Context SecurityContext sc, @PathParam("carId") String carIdString) {
+	public Response GetLendSessions(@Context SecurityContext sc, @PathParam("carId") String carIdString) {
 		JsonObjectBuilder job = Json.createObjectBuilder();
 		
 		String userName = sc.getUserPrincipal().getName();
@@ -53,9 +53,10 @@ public class LendSessionResource {
 		
 		User user = dataservice.getUserByUserName(userName);
 		
-		ArrayList <LendSession> sessions = (ArrayList<LendSession>) dataservice.getLendSessionByUser(user);
+		ArrayList <LendSession> sessions = (ArrayList<LendSession>) dataservice.getLendSessionByUserKilometersPending(user);
 		
 		JsonArrayBuilder jab = Json.createArrayBuilder();
+		
 		
 		for (LendSession ls : sessions) {
 			Car car = dataservice.getCarById(ls.getCarId());
@@ -76,11 +77,11 @@ public class LendSessionResource {
 	
 	@POST
 	@RolesAllowed({"admin", "user"})
-	@Path ("/{carId}")
+	@Path ("/kilometers/{sessionId}")
 	@Produces("application/json")
 	public Response registerKilometers(@Context SecurityContext sc,
-			@FormParam("startDate") String startDateString,
-			@PathParam("carId") String carIdString){
+			@FormParam("mileage") String mileageString,
+			@PathParam("sessionId") String sessionIdString){
 		
 		JsonObjectBuilder job = Json.createObjectBuilder();
 		
@@ -93,51 +94,31 @@ public class LendSessionResource {
 			return Response.status(409).entity(messages).build();
 		}
 		
-		User user = dataservice.getUserByUserName(userName);
+		int newMileage = Integer.parseInt(mileageString);
 		
-		Timestamp start = null;
-		Timestamp end = null;
+		int kilometers = 0;
 		
-		String seperator = ", ";
+		int sessionId = Integer.parseInt(sessionIdString);
 		
-		SimpleDateFormat sdf = new SimpleDateFormat	("yyyy-MM-dd" + seperator + "HH:mm");
-
-		String startString = startDateString + seperator + startTimeString;
-		String endString = endDateString + seperator + endTimeString;
+		LendSession session = dataservice.getLendSessionById(sessionId);
 		
-		Date startDate = null;
-		Date endDate = null;
+		Car car = dataservice.getCarById(session.getCarId());
 		
-		try {
-			startDate = sdf.parse(startString);
-			endDate = sdf.parse(endString);
-			
-			start = new Timestamp(startDate.getTime());
-			end = new Timestamp(endDate.getTime());
-			
-			
-		} catch (ParseException e) {
-			e.printStackTrace();
+		if (car.getMileage() < newMileage) {
+			car.setMileage(newMileage);
 		}
+			
 		
-		int carId = Integer.parseInt(carIdString);
+		kilometers = newMileage - car.getMileage();
+		if (kilometers < 0)
+			kilometers = 0;
 		
-		int lendSessionId = dataservice.getNewLendSessionId();
+		session.setKilometers(kilometers);
 		
-		LendSession newSession = new LendSession(
-				lendSessionId,
-				false,
-				false,
-				0,
-				false,
-				start,
-				end,
-				carId,
-				user.getUserId()
-				);
+		session.setKilometersSubmitted(true);
 		
 			
-		boolean success = dataservice.addLendSession(newSession);	
+		boolean success = dataservice.updateLendSession(session);	
 		
 		
 		if (!success) {
@@ -147,7 +128,7 @@ public class LendSessionResource {
 			return Response.status(409).entity(messages).build();
 		}
 		
-		return Response.ok(newSession).build();
+		return Response.ok(session).build();
 	}
 	
 	@POST
