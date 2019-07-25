@@ -102,6 +102,45 @@ public class UserPostgresDaolmpl extends PostgresBaseDao implements UserDao{
 		return user;
 	}
 	
+	
+	public User findByUserId(int userId) {
+		User user = null;
+		
+		String query = "SELECT email, name_, passwordhash, role_ FROM user_ where user_id=?";
+		
+		
+		Connection connection = getConnection();
+		
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ps.setInt(1, userId);
+			ResultSet resultSet = ps.executeQuery();
+			
+			while (resultSet.next()) {
+				user = new User(
+						userId,
+						resultSet.getString(1),
+						resultSet.getString(2),
+						resultSet.getString(3),
+						resultSet.getString(4)
+						);
+				
+				for (LendSession session : new  LendSessionPostgresDaolmpl().findLendSessionByLender(user))
+					user.addLendSession(session);
+				
+				for (Car car : new CarPostgresDaolmpl().findCarsByOwner(user.getUserId()))
+					user.addCar(car);
+			}
+			connection.close();
+		}
+		catch (Exception e){
+			System.out.println("Error cannot find user: " + userId);
+			e.printStackTrace();
+		}
+		
+		return user;
+	}
+	
 	public User findByCredentials(String username, String password) {
 		User user = null;
 		

@@ -35,6 +35,12 @@ public class AvailabilityTimeframe {
 	public void setCarId(int carId) {this.carId = carId;}
 	public void setUserId(int userId) {this.userId = userId;}
 	
+	public boolean isInTimeframe(Timestamp timestamp) {
+		if (timestamp == null)
+			return false;
+		return (timestamp.getTime() >= start.getTime() && timestamp.getTime() <= end.getTime());
+	}
+	
 	
 	public String toString() {
 		return "Timeframe " + timeframeId + " Start: " + start.toString() + " end: " + end.toString() + " car: " + carId + " user: " + userId;

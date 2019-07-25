@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.5">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="./style.css">
+
+    <title>Manage car</title>
+</head>
+    <body>
+        <header>
+
+        </header>
+        <div id="topBar">
+            <div id="pageTitle">Auto uitleen app</div>
+            <div id="accIcon">
+                <img id="userIconImg" src="images/user-icon.png" alt="">
+            </div>
+            <div id="accName">Account Name</div>
+        </div>
+
+        <div class="infoBar" id="paidPendingBar">
+                Registreer kilometerstand voor een geaccepteerde reservering:
+        </div>
+        <div id="sessionArea">
+            <table id="sessionTable">
+                <tr class="tableHeaderRow" id="sessionHeaderRow">
+                    <th>Auto</th>
+                    <th>Begintijd</th>
+                    <th>Eindtijd</th>
+                    <th>Kilometers</th>
+                    <th>Selecteren</t>
+                </tr>
+            </table>
+        </div>
+
+        <button type="button" id="backButton">Terug</button>
+
+        <script type="text/javascript"> 
+            function back(){
+                
+                window.location.href = "./index.html"
+            }
+
+            function initPage(){
+                loadSessions();
+            }
+
+            function loadSessions(){
+            	fetch("restservices/lendSession/" + sessionStorage.selectedCarId, { 
+                    method: 'GET',
+                    headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                })
+                .then(response =>Promise.all([response.status, response.json()])
+                .then(function([status, myJson]) {
+                    if (status == 200){
+                    
+                        let headersElement = document.getElementById("sessionHeaderRow");
+                        
+                        let tableElement = document.getElementById("sessionTable").getElementsByTagName("tbody")[0];
+                        
+                        tableElement.innerHTML = "";
+                        
+                        tableElement.appendChild(headersElement);
+
+                        for (let i=0; i < myJson.sessions.length; i++){
+
+                            
+                            
+                            let row = document.createElement("tr");
+                            
+                            let sessionId = myJson.sessions[i].sessionId;
+                            let model = myJson.sessions[i].model;
+                            let start = myJson.sessions[i].start;
+                            let end = myJson.sessions[i].end;
+                            let mileage = myJson.sessions[i].mileage;
+
+                            row.setAttribute("id", "row" + sessionId);
+
+                            let modelCell = document.createElement("td");
+                            let modelText = document.createTextNode(model);
+                            modelCell.appendChild(modelText);
+                            row.appendChild(modelCell);
+
+                            let startCell = document.createElement("td");
+                            let startText = document.createTextNode(start);
+                            startCell.appendChild(startText);
+                            row.appendChild(startCell);
+
+                            let endCell = document.createElement("td");
+                            let endText = document.createTextNode(end);
+                            endCell.appendChild(endText);
+                            row.appendChild(endCell);
+
+                            let mileageCell = document.createElement("td");
+                            let mileageText = document.createTextNode(mileage);
+                            mileageCell.appendChild(mileageText);
+                            row.appendChild(mileageCell);
+
+
+                            let selectCell = document.createElement("td");
+                            let selectInput = document.createElement("Input");
+                            selectInput.addEventListener("change", function(){selectionChanged(sessionId, model, mileage)})
+                            selectInput.setAttribute("type", "radio");
+                            selectInput.setAttribute("name", "registerRadio");
+
+
+                            selectCell.appendChild(selectInput);
+                            row.appendChild(selectCell);
+
+                            tableElement.appendChild(row);
+                        }
+                    }
+                    else if (status == 401 || status == 403)
+                        alert("You are not authorised to use this functionality");
+                    else{
+                        console.log(myJson.error);
+                    }
+                }
+                ));
+            }
+
+            function registerKilometers(){
+                fetch("restservices/lendSession/kilometers/"+ sessionId, {
+                    method: 'POST',
+                    headers:  {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                })
+                .then(response =>Promise.all([response.status, response.json()])
+                .then(function([status, myJson]) {
+                    if (status == 200){
+                        console.log("session updated");
+                        loadAcceptPending();
+                    }
+                    })
+                .catch(error => console.log(error))
+                );
+            }
+
+            function selectionChanged(sessionId, model, mileage){
+            	window.sessionStorage.setItem("selectedSessionId", sessionId);
+                console.log(sessionId);
+                console.log(model);
+                console.log(mileage);
+            }
+
+            document.getElementById("pageTitle").innerHTML = "Registreer kilomterstand voor een geaccepteerde reservering"
+
+            document.querySelector("#backButton").addEventListener("click", back);
+           document.querySelector("#opslaanButton").addEventListener("click", back);
+
+            initPage();
+        </script>
+    </body>
+</html>

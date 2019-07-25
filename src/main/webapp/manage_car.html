@@ -32,11 +32,11 @@
 
         <div id="acceptPendingArea">
             <table id="acceptPendingTable">
-                <tr id="acceptPendingHeaderRow">
-                    <th>Naam</th>
+                <tr class="tableHeaderRow" id="acceptPendingHeaderRow">
+                    <th>Lener</th>
                     <th>Begintijd</th>
                     <th>Eindtijd</th>
-                    <th>geaccepteerd</th>
+                    <th>Aanvraag accepteren</th>
                 </tr>
             </table>
         </div>
@@ -46,12 +46,13 @@
         </div>
         <div id="paidPendingArea">
             <table id="paidPendingTable">
-                <tr id="paidPendingHeaderRow">
-                    <th>Naam</th>
+                <tr class="tableHeaderRow" id="paidPendingHeaderRow">
+                    <th>Lener</th>
                     <th>Begintijd</th>
                     <th>Eindtijd</th>
+                    <th>Kilometers</th>
                     <th>Prijs</th>
-                    <th>betaald</t>
+                    <th>Betaald bevestigen</t>
                 </tr>
             </table>
         </div>
@@ -64,7 +65,196 @@
                 window.location.href = "./index.html"
             }
 
-            window.sessionStorage.setItem("selectedCarModel", "Dikke Opel Corsa");
+            function initPage(){
+                loadAcceptPending();
+                loadPaidPending();
+            }
+
+            function loadAcceptPending(){
+            	fetch("restservices/lendSession/acceptPending/" + sessionStorage.selectedCarId, { 
+                    method: 'GET',
+                    headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                })
+                .then(response =>Promise.all([response.status, response.json()])
+                .then(function([status, myJson]) {
+                    if (status == 200){
+                    
+                        let headersElement = document.getElementById("acceptPendingHeaderRow");
+                        
+                        let tableElement = document.getElementById("acceptPendingTable").getElementsByTagName("tbody")[0];
+                        
+                        tableElement.innerHTML = "";
+                        
+                        tableElement.appendChild(headersElement);
+
+                        for (let i=0; i < myJson.sessions.length; i++){
+
+                            
+                            
+                            let row = document.createElement("tr");
+                            
+                            let sessionId = myJson.sessions[i].sessionId;
+                            let lender = myJson.sessions[i].lender;
+                            let start = myJson.sessions[i].start;
+                            let end = myJson.sessions[i].end;
+
+                            row.setAttribute("id", "row" + sessionId);
+
+                            let lenderCell = document.createElement("td");
+                            let lenderText = document.createTextNode(lender);
+                            lenderCell.appendChild(lenderText);
+                            row.appendChild(lenderCell);
+
+                            let startCell = document.createElement("td");
+                            let startText = document.createTextNode(start);
+                            startCell.appendChild(startText);
+                            row.appendChild(startCell);
+
+                            let endCell = document.createElement("td");
+                            let endText = document.createTextNode(end);
+                            endCell.appendChild(endText);
+                            row.appendChild(endCell);
+
+                            let acceptCell = document.createElement("td");
+                            let acceptButton = document.createElement("Button");
+                            acceptButton.addEventListener("click", function(){acceptSession(sessionId)});
+                            let acceptText = document.createTextNode("Accepteren");
+
+
+                            acceptButton.appendChild(acceptText);
+                            acceptCell.appendChild(acceptButton);
+                            row.appendChild(acceptButton);
+
+                            tableElement.appendChild(row);
+                        }
+
+                    }
+                    else if (status == 401 || status == 403)
+                        alert("You are not authorised to use this functionality");
+                    else{
+                        console.log(myJson.error);
+                    }
+                }
+                ));
+            }
+
+            function loadPaidPending(){
+            	fetch("restservices/lendSession/paidPending/" + sessionStorage.selectedCarId, { 
+                    method: 'GET',
+                    headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                })
+                .then(response =>Promise.all([response.status, response.json()])
+                .then(function([status, myJson]) {
+                    if (status == 200){
+                    
+                        let headersElement = document.getElementById("paidPendingHeaderRow");
+                        
+                        let tableElement = document.getElementById("paidPendingTable").getElementsByTagName("tbody")[0];
+                        
+                        tableElement.innerHTML = "";
+                        
+                        tableElement.appendChild(headersElement);
+
+                        for (let i=0; i < myJson.sessions.length; i++){
+
+                            
+                            
+                            let row = document.createElement("tr");
+                            
+                            let sessionId = myJson.sessions[i].sessionId;
+                            let lender = myJson.sessions[i].lender;
+                            let start = myJson.sessions[i].start;
+                            let end = myJson.sessions[i].end;
+                            let kilometers = myJson.sessions[i].kilometers;
+                            let price = myJson.sessions[i].price;
+
+                            
+
+                            let lenderCell = document.createElement("td");
+                            let lenderText = document.createTextNode(lender);
+                            lenderCell.appendChild(lenderText);
+                            row.appendChild(lenderCell);
+
+                            let startCell = document.createElement("td");
+                            let startText = document.createTextNode(start);
+                            startCell.appendChild(startText);
+                            row.appendChild(startCell);
+
+                            let endCell = document.createElement("td");
+                            let endText = document.createTextNode(end);
+                            endCell.appendChild(endText);
+                            row.appendChild(endCell);
+
+                            let kilometersCell = document.createElement("td");
+                            let kilometersText = document.createTextNode(kilometers);
+                            kilometersCell.appendChild(kilometersText);
+                            row.appendChild(kilometersCell);
+
+                            let priceCell = document.createElement("td");
+                            let priceText = document.createTextNode(price);
+                            priceCell.appendChild(priceText);
+                            row.appendChild(priceCell);
+
+                            let confirmPaidCell = document.createElement("td");
+                            let confirmPaidButton = document.createElement("Button");
+                            confirmPaidButton.addEventListener("click", function(){confirmPaidSession(sessionId)});
+                            let confirmPaidText = document.createTextNode("Bevestigen");
+
+                            confirmPaidButton.appendChild(confirmPaidText);
+                            confirmPaidCell.appendChild(confirmPaidButton);
+                            
+                            row.appendChild(confirmPaidCell);
+                            
+                            row.setAttribute("id", "row" + sessionId);
+
+                            tableElement.appendChild(row);
+                        }
+
+                    }
+                    else if (status == 401 || status == 403)
+                        alert("You are not authorised to use this functionality");
+                    else{
+                        console.log(myJson.error);
+                    }
+                }
+                ));
+            }
+
+            function acceptSession(sessionId){
+                fetch("restservices/lendSession/accept/"+ sessionId, {
+                    method: 'PUT',
+                    headers:  {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                })
+                .then(response =>Promise.all([response.status, response.json()])
+                .then(function([status, myJson]) {
+                    if (status == 200){
+                        console.log("session updated");
+                        loadAcceptPending();
+                    }
+                    })
+                .catch(error => console.log(error))
+                );
+
+
+
+                
+            }
+
+            function confirmPaidSession(sessionId){
+                fetch("restservices/lendSession/confirmPaid/"+ sessionId, {
+                    method: 'PUT',
+                    headers:  {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                })
+                .then(response =>Promise.all([response.status, response.json()])
+                .then(function([status, myJson]) {
+                    if (status == 200){
+                        console.log("session updated");
+                        loadPaidPending();
+                    }
+                    })
+                .catch(error => console.log(error))
+                );
+            }
 
             document.getElementById("pageTitle").innerHTML = window.sessionStorage.selectedCarModel + " beheren"
 
@@ -72,6 +262,8 @@
             document.getElementById("acceptPendingBar").style.display = "block";
             document.getElementById("paidPendingBar").style.display = "block";
             document.querySelector("#backButton").addEventListener("click", back);
+
+            initPage();
         </script>
     </body>
 </html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.5">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="./style.css">
+
+    <title>Beschikbaarheid beheren</title>
+</head>
+    <body>
+        <header>
+
+        </header>
+        <div id="topBar">
+            <div id="pageTitle">Auto uitleen app</div>
+            <div id="accIcon">
+                <img id="userIconImg" src="images/user-icon.png" alt="">
+            </div>
+            <div id="accName">Account Name</div>
+        </div>
+        <div class="infoBar" id="infoBar">
+                
+        </div>
+        <div>
+            <label id="errorLabel"></label>
+        </div>
+        <form id="getAvailableForm">
+            <div class="altPropertyRow">
+                <label class="altVarNameLabel">Begindatum:</label>
+                <input class="availableInput" type="date" name="startDate" id="startDateEntry" value="2019-09-02">
+                <label class="altVarNameLabel">Begintijd:</label>
+                <input class="availableInput" type="time" name="startTime" id="startTimeEntry" value="10:00">
+            </div>
+            <div class="altPropertyRow">
+                <label class="altVarNameLabel">Einddatum:</label>
+                <input class="availableInput" type="date" name="endDate" id="endDateEntry"  value="2019-09-03">
+                <label class="altVarNameLabel">Eindtijd:</label>
+                <input class="availableInput" type="time" name="endTime" id="endTimeEntry" value="10:00">
+            </div>
+            <div class="altPpropertyRow" id="ButtonPropertyRow">
+                    <label class="altVarNameLabel"></label>
+                    <button type="button" class="availableFormButton" id="searchAvailableButton">Zoeken</button>
+            </div>                
+        </form>
+            
+        
+        <div id="carsAvailableArea">
+            <table id="carsAvailableTable">
+                <tr id="carsAvailableHeaderRow">
+                    <th>Model</th>
+                    <th>Kilometerstand</th>
+                    <th>prijs per km</th>
+                    <th>Reserveren</th>
+                </tr>
+            </table>
+            <button type="button" class="availableFormButton" id="reserveButton">Reserveren</button>
+        </div>
+        <button type="button" class="availableFormButton" id="backButton">Terug</button>
+
+        <script type="text/javascript"> 
+            function back(){
+                
+                window.location.href = "./manage_car.html"
+            }
+
+            function reserve(){
+            	let formData = new FormData(document.querySelector("#getAvailableForm"));
+                let encData = new URLSearchParams(formData.entries());
+            	
+            	let tableElement = document.getElementById("carsAvailableTable").getElementsByTagName("tbody")[0]
+            	
+            	for (let i=0; i < tableElement.children.length; i++){
+            		
+            		if (tableElement.children[i].id != "carsAvailableHeaderRow"){
+            			if (tableElement.children[i].children[3].children[0].checked){
+                			let carId = tableElement.children[i].id.replace("row", "");
+                			
+                			let startDateEntry = document.getElementById("startDateEntry");
+                            let startTimeEntry = document.getElementById("startTimeEntry");
+                            let endDateEntry = document.getElementById("endDateEntry");
+                            let endTimeEntry = document.getElementById("endTimeEntry");
+                            
+                            if (startDateEntry.value == sessionStorage.startDate &&
+                            	startTimeEntry.value == sessionStorage.startTime &&
+                            	endDateEntry.value == sessionStorage.endDate &&
+                            	endTimeEntry.value == sessionStorage.endTime)
+                            {
+                            	fetch("restservices/lendSession/" + carId, { 
+                             	    method: 'POST', 
+                                    body: encData,
+                             	    headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                                    })
+                                    .then(response =>Promise.all([response.status, response.json()])
+                                    .then(function([status, myJson]) {
+                                        if (status == 200){
+                                        	console.log("reservation added");
+                                        	window.location.href = "./index.html";
+                                        }
+                                        else if (status == 401 || status == 403)
+                                            alert("You are not authorised to use this functionality");
+                                        else{
+                                            console.log(myJson.error);
+                                        }
+                                    }
+                                    ));
+                            }
+                            else{
+                            	loadAvailable();
+                            }
+            			}
+            		}
+            	}
+            }
+
+            function loadAvailable(){
+
+                let formData = new FormData(document.querySelector("#getAvailableForm"));
+                let encData = new URLSearchParams(formData.entries());
+                let startDateEntry = document.getElementById("startDateEntry");
+                let startTimeEntry = document.getElementById("startTimeEntry");
+                let endDateEntry = document.getElementById("endDateEntry");
+                let endTimeEntry = document.getElementById("endTimeEntry");
+
+                if (startDateEntry.value == null || startDateEntry.value.length <1){
+                    errorLabel.innerHTML = "Voer een begindatum in";
+                }
+                else if (startTimeEntry.value == null || startTimeEntry.value.length <1){
+                    errorLabel.innerHTML = "Voer een begintijd in";
+                }
+                else if (endDateEntry.value == null || endDateEntry.value.length < 1){
+                    errorLabel.innerHTML = "Voer een einddatum in";
+                }
+                else if (endTimeEntry.value == null || endTimeEntry.value.length < 1){
+                    errorLabel.innerHTML = "Voer een eindtijd in";
+                }
+                else if ((endDateEntry.value < startDateEntry.value) ||  (endDateEntry.value == startDateEntry.value && endTimeEntry.value < startTimeEntry.value)){
+                    errorLabel.innerHTML = "De begintijd moet voor de eindtijd zijn.";
+                }
+                else{
+                    errorLabel.innerHTML = "";
+                    fetch("restservices/cars/availableCars", { 
+             	    method: 'POST', 
+                    body: encData,
+             	    headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                    })
+                    .then(response =>Promise.all([response.status, response.json()])
+                    .then(function([status, myJson]) {
+                        if (status == 200){
+                        	
+                        	
+                        	window.sessionStorage.setItem("startDate", startDateEntry.value);
+                        	window.sessionStorage.setItem("startTime", startTimeEntry.value);
+                        	window.sessionStorage.setItem("endDate", endDateEntry.value);
+                        	window.sessionStorage.setItem("endTime", endTimeEntry.value);
+                        
+                            let headersElement = document.getElementById("carsAvailableHeaderRow");
+                            
+                            let tableElement = document.getElementById("carsAvailableTable").getElementsByTagName("tbody")[0];
+                            
+                            tableElement.innerHTML = "";
+                            
+                            tableElement.appendChild(headersElement);
+
+                            if (myJson.size <1){
+                                let row = document.createElement("tr");
+                                tableElement.appendChild(row);
+                            }
+                            for (let i=0; i < myJson.cars.length; i++){
+
+                                let row = document.createElement("tr");
+
+                                let carId = myJson.cars[i].carId;
+                                let model = myJson.cars[i].model;
+                                let mileage = myJson.cars[i].mileage;
+                                let price = myJson.cars[i].pricePerKm;
+
+                                row.setAttribute("id", "row" + carId);
+
+                                let modelCell = document.createElement("td");
+                                let modelText = document.createTextNode(model);
+                                modelCell.appendChild(modelText);
+                                row.appendChild(modelCell);
+
+                                let mileageCell = document.createElement("td");
+                                let mileageText = document.createTextNode(mileage);
+                                mileageCell.appendChild(mileageText);
+                                row.appendChild(mileageCell);
+                                
+                                let priceCell = document.createElement("td");
+                                let priceText = document.createTextNode(price);
+                                priceCell.appendChild(priceText);
+                                row.appendChild(priceCell);
+
+                                let selectCell = document.createElement("td");
+                                let selectInput = document.createElement("Input");
+                                selectInput.setAttribute("type", "radio");
+                                selectInput.setAttribute("name", "reserveRadio");
+
+                                selectCell.appendChild(selectInput);
+                                row.appendChild(selectCell);
+
+                                tableElement.appendChild(row);
+                            }
+
+                        }
+                        else if (status == 401 || status == 403)
+                            alert("You are not authorised to use this functionality");
+                        else{
+                            console.log(myJson.error);
+                        }
+                    }
+                    ));
+                }
+                		
+             	
+            }
+
+            function initPage(){
+                
+            }
+            
+            document.getElementById("infoBar").style.display = "block";
+            document.getElementById("backButton").addEventListener("click", back);
+            document.getElementById("searchAvailableButton").addEventListener("click", loadAvailable);
+            document.getElementById("reserveButton").addEventListener("click", reserve);
+
+            initPage();
+        </script>
+    </body>
+</html>

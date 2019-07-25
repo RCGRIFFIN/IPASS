@@ -49,7 +49,7 @@ public class Car {
 		int paidPending = 0;
 		
 		for (LendSession session : lendSessions)
-			if (session.getAccepted() == true && session.getPaid() == false)
+			if (session.getAccepted() == true && session.getPaid() == false && session.getKilometersSubmitted() == true)
 				paidPending++;
 		
 		

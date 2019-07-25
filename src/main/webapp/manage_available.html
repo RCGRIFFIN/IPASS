@@ -48,9 +48,9 @@
         </form>
             
         
-        <div id="paidPendingArea">
-            <table id="paidPendingTable">
-                <tr id="paidPendingHeaderRow">
+        <div id="availableArea">
+            <table id="availableTable">
+                <tr id="availableHeaderRow">
                     <th>Begin</th>
                     <th>Eind</th>
                     <th>Verwijder</th>
@@ -65,11 +65,9 @@
             }
 
             function save(){
+                
                 let formData = new FormData(document.querySelector("#newAvailableForm"));
                 let encData = new URLSearchParams(formData.entries());
-
-
-                let carId = 1;
                 let startDateEntry = document.getElementById("startDateEntry");
                 let startTimeEntry = document.getElementById("startTimeEntry");
                 let endDateEntry = document.getElementById("endDateEntry");
@@ -93,7 +91,7 @@
                 }
                 else{
                     errorLabel.innerHTML = "";
-                    fetch("restservices/availability", { 
+                    fetch("restservices/availability/" + window.sessionStorage.selectedCarId, { 
                         method: 'POST', 
                         body: encData,
                         headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
@@ -110,20 +108,27 @@
             }
 
             function loadAvailable(){
-                let carId = 1;
-
-                fetch("restservices/cars")
-                .then(response =>Promise.all([response.status, response.json()])
-                .then(function([status, myJson]) {
+                		
+             	fetch("restservices/availability/" + window.sessionStorage.selectedCarId, { 
+             	    method: 'GET',
+             	    headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+             	})
+             	.then(response =>Promise.all([response.status, response.json()])
+              	.then(function([status, myJson]) {
                     if (status == 200){
                     
-                        let headersElement = document.getElementById("tableHeaderRow");
+                        let headersElement = document.getElementById("availableHeaderRow");
                         
-                        let tableElement = document.getElementById("carsTable").getElementsByTagName("tbody")[0];
+                        let tableElement = document.getElementById("availableTable").getElementsByTagName("tbody")[0];
                         
                         tableElement.innerHTML = "";
                         
                         tableElement.appendChild(headersElement);
+
+                        if (myJson.size <1){
+                            let row = document.createElement("tr");
+                            tableElement.appendChild(row);
+                        }
 
                         for (let i=0; i < myJson.timeframes.length; i++){
 
@@ -131,11 +136,9 @@
                             
                             let row = document.createElement("tr");
 
-                            let timeFrameId = myJson.timeframes[i].timeframeId;
+                            let timeframeId = myJson.timeframes[i].timeframeId;
                             let start = myJson.timeframes[i].start;
                             let end = myJson.timeframes[i].end;
-
-                            row.setAttribute("id", "row" + carId);
 
                             let startCell = document.createElement("td");
                             let startText = document.createTextNode(start);
@@ -150,7 +153,7 @@
                             
                             let deleteCell = document.createElement("td");
                             let deleteButton = document.createElement("Button");
-                            deleteButton.addEventListener("click", function(){removeAvailable(timeframeId, start,)}); 
+                            deleteButton.addEventListener("click", function(){removeAvailable(timeframeId)}); 
                             let deleteText = document.createTextNode("verwijder");
 
                             deleteButton.appendChild(deleteText);
@@ -170,14 +173,34 @@
                 ));
             }
 
+            function removeAvailable(id){
+                if (confirm("Weet je zeker dat je deze beschikbaarheidsperiod wilt verwijderen?")){
+                    fetch("restservices/availability/" + id, { 
+                        method: 'DELETE',
+                        headers:  {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+                    })
+                    .then(function (response) {
+                    if (response.ok){
+                        console.log("Timeframe deleted!");
+                        loadAvailable();
+                    } // response-status = 200 OK
+                    else if (response.status == 404)
+                        console.log("Timeframe not found!");
+                    else console.log("Cannot delete timeframe!");
+                    })
+                    .catch(error => console.log(error));
+                }
+            }
+
             function initPage(){
                 loadAvailable();
             }
-            window.sessionStorage.setItem("selectedCarModel", "Dikke Opel Corsa");
             
             document.getElementById("infoBar").style.display = "block";
             document.getElementById("backButton").addEventListener("click", back);
             document.getElementById("saveButton").addEventListener("click", save);
+
+            initPage();
         </script>
     </body>
 </html>

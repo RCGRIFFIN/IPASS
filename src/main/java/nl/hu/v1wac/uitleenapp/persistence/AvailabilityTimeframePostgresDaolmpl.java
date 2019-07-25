@@ -13,6 +13,10 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 
 	@Override
 	public List<AvailabilityTimeframe> findAvailableByCar(Car car) {
+		return findAvailableByCar(car.getCarId());
+	}
+	
+	public List<AvailabilityTimeframe> findAvailableByCar(int carId) {
 		ArrayList<AvailabilityTimeframe> timeframes = null;
 		
 		String query = "SELECT timeframe_id, start_, end_, user_id FROM availability_timeframe WHERE car_id = ?";
@@ -22,7 +26,7 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 		
 		try {
 			PreparedStatement ps = connection.prepareStatement(query);
-			ps.setInt(1,  car.getCarId());
+			ps.setInt(1,  carId);
 			ResultSet resultSet = ps.executeQuery();
 			
 			timeframes = new ArrayList<AvailabilityTimeframe>();
@@ -31,7 +35,7 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 						resultSet.getInt(1),
 						resultSet.getTimestamp(2),
 						resultSet.getTimestamp(3),
-						car.getCarId(),
+						carId,
 						resultSet.getInt(4)
 						));
 			}
@@ -39,7 +43,7 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 			connection.close();
 		}
 		catch (Exception e){
-			System.out.println("Error cannot find available for car '" + car.getCarId() + "':");
+			System.out.println("Error cannot find available for car '" + carId + "':");
 			e.printStackTrace();
 		}
 		
@@ -50,6 +54,34 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 	@Override
 	public boolean save(AvailabilityTimeframe timeframe) {
 		String query = "INSERT INTO availability_timeframe (timeframe_id, start_, end_, car_id, user_id) VALUES (?, ?, ?, ?, ?)";
+		
+		ArrayList<AvailabilityTimeframe> timeframes = (ArrayList<AvailabilityTimeframe>) findAvailableByCar(timeframe.getCarId());
+		
+		
+		for (AvailabilityTimeframe tf : timeframes) {
+			if (tf.isInTimeframe(timeframe.getStart()) && tf.isInTimeframe(timeframe.getEnd())) {
+				return true;
+			}
+			else if (tf.isInTimeframe(timeframe.getStart()) && !tf.isInTimeframe(timeframe.getEnd())) {
+				tf.setEnd(timeframe.getEnd());
+				return update(tf);
+			}
+			else if (!tf.isInTimeframe(timeframe.getStart()) && tf.isInTimeframe(timeframe.getEnd())) {
+				tf.setStart(timeframe.getStart());
+				return update(tf);
+			}        
+			else if (tf.getEnd().getTime() <= timeframe.getEnd().getTime() && tf.getStart().getTime() >= timeframe.getStart().getTime()) {
+				System.out.println(tf.getEnd().getTime() <= timeframe.getEnd().getTime());
+				System.out.println(tf.getStart().getTime() >= timeframe.getStart().getTime());
+				tf.setStart(timeframe.getStart());
+				tf.setEnd(timeframe.getEnd());
+				return update(tf);
+			}
+				
+		}
+		
+		
+		
 		
 		
 		int rowsAffected = 0;
@@ -82,6 +114,35 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 		
 		
 		int rowsAffected = 0;
+		
+		ArrayList<AvailabilityTimeframe> timeframes = (ArrayList<AvailabilityTimeframe>) findAvailableByCar(timeframe.getCarId());
+		
+		AvailabilityTimeframe timeframeToRemove = null;
+		
+		for (AvailabilityTimeframe tf : timeframes)
+			if (tf.getTimeframeId() == timeframe.getTimeframeId())
+				timeframeToRemove = tf;
+		
+		timeframes.remove(timeframeToRemove);
+		
+		for (AvailabilityTimeframe tf : timeframes) {
+			if (tf.isInTimeframe(timeframe.getStart()) && tf.isInTimeframe(timeframe.getEnd())) {
+				return true;
+			}
+			else if (tf.isInTimeframe(timeframe.getStart()) && !tf.isInTimeframe(timeframe.getEnd())) {
+				tf.setEnd(timeframe.getEnd());
+				return update(tf);
+			}
+			else if (!tf.isInTimeframe(timeframe.getStart()) && tf.isInTimeframe(timeframe.getEnd())) {
+				tf.setStart(timeframe.getStart());
+				return update(tf);
+			}
+			else if (tf.getEnd().getTime() <= timeframe.getEnd().getTime() && tf.getStart().getTime() >= timeframe.getStart().getTime())
+				tf.setStart(timeframe.getStart());
+				tf.setEnd(timeframe.getEnd());
+				return update(tf);
+		}
+		
 		
 		Connection connection = getConnection();
 		
@@ -169,4 +230,5 @@ public class AvailabilityTimeframePostgresDaolmpl extends PostgresBaseDao implem
 		}
 		return id;
 	}
+	
 }

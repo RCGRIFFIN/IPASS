@@ -4,24 +4,41 @@
 
 
 function initPage(){
-    if (window.sessionStorage.myJWT != null && window.sessionStorage.myJWT != ""){
-        console.log(window.sessionStorage.myJWT);
-
-        loadCars();
-        
-        document.getElementById("loginArea").style.display = "none";
-        document.getElementById("navBox").style.display = "block";
-        document.getElementById("autoTableBar").style.display = "block";
-        document.getElementById("carsTableArea").style.display = "block";
-    }
-    else{
+	fetch("restservices/authentication", { 
+        method: 'GET',
+        headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+    })
+    .then(response =>Promise.all([response.status, response.json()])
+    .then(function([status, myJson]) {
+    	console.log(myJson);
+        if (status == 200 && myJson.authenticated == true){
+            loadCars();
+            let usernameEntry = document.getElementById("usernameEntry");
+            document.getElementById("accountNameLabel").innerHTML = usernameEntry.value;
+            document.getElementById("loginArea").style.display = "none";
+            document.getElementById("navBox").style.display = "block";
+            document.getElementById("autoTableBar").style.display = "block";
+            document.getElementById("carsTableArea").style.display = "block";
+        }
+        else{
+        	console.log(window.sessionStorage.myJWT);
+            document.getElementById("navBox").style.display = "none";
+            document.getElementById("autoTableBar").style.display = "none";
+            document.getElementById("carsTableArea").style.display = "none";
+            document.getElementById("loginArea").style.display = "block";
+            console.log("Not logged in");
+        }
+    }))
+    .catch(function(){
     	console.log(window.sessionStorage.myJWT);
+    	let usernameEntry = document.getElementById("usernameEntry");
+        document.getElementById("accountNameLabel").innerHTML = "Account name";
         document.getElementById("navBox").style.display = "none";
         document.getElementById("autoTableBar").style.display = "none";
         document.getElementById("carsTableArea").style.display = "none";
         document.getElementById("loginArea").style.display = "block";
-        console.log("Token not found. Login needed.");
-    }
+        console.log("Not logged in");
+    });
 }
 
 function login(event) {
@@ -39,15 +56,25 @@ function login(event) {
         	initPage();
         })
         .catch(error => console.log(error));
+    
+}
+
+function logout(){
+    window.sessionStorage.removeItem("myJWT");
+    initPage();
 }
 
 function loadCars(){
-    fetch("restservices/cars")
+	fetch("restservices/cars", { 
+        method: 'GET',
+        headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
+    })
     .then(response =>Promise.all([response.status, response.json()])
     .then(function([status, myJson]) {
+    	console.log(myJson);
         if (status == 200){
            
-        	let headersElement = document.getElementById("tableHeaderRow");
+        	let headersElement = document.getElementById("carsTableHeaderRow");
         	
             let tableElement = document.getElementById("carsTable").getElementsByTagName("tbody")[0];
             
@@ -101,9 +128,9 @@ function loadCars(){
                 deleteCell.appendChild(deleteButton);
                 row.appendChild(deleteButton);
 
+                row.addEventListener("click", function(){manage(carId, model)});
+
                 tableElement.appendChild(row);
-
-
             }
 
         }
@@ -115,6 +142,14 @@ function loadCars(){
     }
     ));
 }
+
+
+function manage(carId, model){
+    window.sessionStorage.setItem("selectedCarId", carId);
+    window.sessionStorage.setItem("selectedCarModel", model);
+    window.location.href = "./manage_car.html";
+}
+
 
 function removeCar(id, model){
     if (confirm("Weet je zeker dat je de auto '" + model + "' wilt verwijderen?")){
@@ -142,5 +177,5 @@ function addCar(){
 document.querySelector("#addCarButton").addEventListener("click", addCar);
 document.querySelector("#loginButton").addEventListener("click", login);
 
-
+document.querySelector("#logOutButton").addEventListener("click", logout);
 initPage();

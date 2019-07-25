@@ -64,7 +64,7 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 		return findCarsByOwner(user.getUserId());
 	}
 	
-	private Car findById(int id) {
+	public Car findById(int id) {
 		Car car = null;
 		
 		String query = "SELECT user_id, model, price_per_km, mileage FROM car WHERE car_id = ?";
@@ -113,17 +113,17 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 	public List<Car> findCarsByTimeframe(Timestamp start, Timestamp end) {
 		ArrayList<Car> cars = null;
 		
-		String query = "SELECT DISTINCT cr.car_id, cr.user_id, cr.model, cr.price_per_km, cr.mileage, ls.car_id" + 
-				"FROM availability_timeframe atf" + 
-				"JOIN car cr" + 
-					"ON atf.car_id = cr.car_id" + 
-				"FULL OUTER JOIN lend_session ls" + 
-					"ON atf.car_id = ls.car_id" + 
-				"WHERE" + 
-					"? >= atf.start_" + 
-					"AND ? <= atf.end_" + 
-					"AND ((ls.start_ NOT BETWEEN ? AND ?" + 
-						"AND ls.end_ NOT BETWEEN ? AND ?)" + 
+		String query = "SELECT DISTINCT cr.car_id, cr.user_id, cr.model, cr.price_per_km, cr.mileage, ls.car_id " + 
+				"FROM availability_timeframe AS atf " + 
+				"JOIN car AS cr " + 
+					"ON atf.car_id = cr.car_id " + 
+				"FULL OUTER JOIN lend_session AS ls " + 
+					"ON atf.car_id = ls.car_id " + 
+				"WHERE " + 
+					"? >= atf.start_ " + 
+					"AND ? <= atf.end_ " + 
+					"AND ((ls.start_ NOT BETWEEN ? AND ? " + 
+						"AND ls.end_ NOT BETWEEN ? AND ?) " + 
 					"OR ls.car_id is null)";
 		
 		
