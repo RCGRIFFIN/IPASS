@@ -36,20 +36,18 @@ public class LendSessionResource {
 	
 	@GET
 	@RolesAllowed({"admin", "user"})
-	@Path("{carId}")
 	@Produces("application/json")
-	public Response GetLendSessions(@Context SecurityContext sc, @PathParam("carId") String carIdString) {
+	public Response GetLendSessions(@Context SecurityContext sc) {
 		JsonObjectBuilder job = Json.createObjectBuilder();
 		
 		String userName = sc.getUserPrincipal().getName();
 		
 		if (userName == null || userName == "Unknown") {
 			Map<String, String> messages = new HashMap<String, String>();
-			messages.put("error", "Paid pending cannot be loaded because the user is unknown");
+			messages.put("error", "Sessions cannot be loaded because the user is unknown");
 			
 			return Response.status(409).entity(messages).build();
 		}
-		int carId = Integer.parseInt(carIdString);
 		
 		User user = dataservice.getUserByUserName(userName);
 		
@@ -83,8 +81,6 @@ public class LendSessionResource {
 			@FormParam("mileage") String mileageString,
 			@PathParam("sessionId") String sessionIdString){
 		
-		JsonObjectBuilder job = Json.createObjectBuilder();
-		
 		String userName = sc.getUserPrincipal().getName();
 		
 		if (userName == null || userName == "Unknown") {
@@ -104,21 +100,24 @@ public class LendSessionResource {
 		
 		Car car = dataservice.getCarById(session.getCarId());
 		
+		kilometers = newMileage - car.getMileage();
+		if (kilometers < 0)
+			kilometers = 0;
+		
 		if (car.getMileage() < newMileage) {
 			car.setMileage(newMileage);
 		}
 			
 		
-		kilometers = newMileage - car.getMileage();
-		if (kilometers < 0)
-			kilometers = 0;
+		
 		
 		session.setKilometers(kilometers);
 		
 		session.setKilometersSubmitted(true);
 		
+		car.setMileage(newMileage);
 			
-		boolean success = dataservice.updateLendSession(session);	
+		boolean success = dataservice.updateCar(car) && dataservice.updateLendSession(session);	
 		
 		
 		if (!success) {
@@ -220,7 +219,7 @@ public class LendSessionResource {
 		
 		if (userName == null || userName == "Unknown") {
 			Map<String, String> messages = new HashMap<String, String>();
-			messages.put("error", "Accept pending cannot be loaded because the user is unknown");
+			messages.put("error", "Cannot save session because the user is unknown");
 			
 			return Response.status(409).entity(messages).build();
 		}
@@ -256,7 +255,7 @@ public class LendSessionResource {
 		
 		if (userName == null || userName == "Unknown") {
 			Map<String, String> messages = new HashMap<String, String>();
-			messages.put("error", "Accept pending cannot be loaded because the user is unknown");
+			messages.put("error", "cannot save session because the user is unknown");
 			
 			return Response.status(409).entity(messages).build();
 		}
@@ -293,7 +292,7 @@ public class LendSessionResource {
 		
 		if (userName == null || userName == "Unknown") {
 			Map<String, String> messages = new HashMap<String, String>();
-			messages.put("error", "Paid pending cannot be loaded because the user is unknown");
+			messages.put("error", "Accept pending cannot be loaded because the user is unknown");
 			
 			return Response.status(409).entity(messages).build();
 		}
@@ -328,7 +327,7 @@ public class LendSessionResource {
 		
 		if (userName == null || userName == "Unknown") {
 			Map<String, String> messages = new HashMap<String, String>();
-			messages.put("error", "Cars cannot be load because the user is unknown");
+			messages.put("error", "Paid pending cannot be load because the user is unknown");
 			
 			return Response.status(409).entity(messages).build();
 		}

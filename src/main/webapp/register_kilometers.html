@@ -73,7 +73,7 @@
             function loadSessions(){
             	let form = document.getElementById("registerKilometersForm");
             	form.style.display = "none";
-            	fetch("restservices/lendSession/" + sessionStorage.selectedCarId, { 
+            	fetch("restservices/lendSession", { 
                     method: 'GET',
                     headers: {'Authorization': 'Bearer ' +  window.sessionStorage.getItem("myJWT")}
                 })

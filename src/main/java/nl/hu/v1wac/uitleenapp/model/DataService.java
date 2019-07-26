@@ -43,6 +43,9 @@ public class DataService {
 		return new CarPostgresDaolmpl().findById(carId);
 	}
 	
+	public boolean updateCar(Car car) {
+		return new CarPostgresDaolmpl().update(car);
+	}
 	public boolean removeCar(int id) {
 		return new CarPostgresDaolmpl().delete(id);
 	}
@@ -55,8 +58,8 @@ public class DataService {
 		return new CarPostgresDaolmpl().getNewCarId();
 	}
 	
-	public List<Car> getCarsByTimeframe(Timestamp start, Timestamp end) {
-		return new CarPostgresDaolmpl().findCarsByTimeframe(start,  end);
+	public List<Car> getCarsByTimeframe(Timestamp start, Timestamp end, User user) {
+		return new CarPostgresDaolmpl().findCarsByTimeframe(start,  end, user);
 	}
 	
 	//Timeframe

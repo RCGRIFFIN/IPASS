@@ -33,7 +33,7 @@ function initPage(){
     .catch(function(){
     	console.log(window.sessionStorage.myJWT);
     	let usernameEntry = document.getElementById("usernameEntry");
-        document.getElementById("accountNameLabel").innerHTML = "Account name";
+        document.getElementById("accountNameLabel").innerHTML = "Not logged in";
         document.getElementById("navBox").style.display = "none";
         document.getElementById("autoTableBar").style.display = "none";
         document.getElementById("carsTableArea").style.display = "none";

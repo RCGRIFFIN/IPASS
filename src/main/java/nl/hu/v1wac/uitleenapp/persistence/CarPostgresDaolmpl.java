@@ -105,12 +105,12 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 	}
 
 	@Override
-	public List<Car> findCarsByTimeframe(AvailabilityTimeframe timeframe) {
-		return findCarsByTimeframe(timeframe.getStart(), timeframe.getEnd());
+	public List<Car> findCarsByTimeframe(AvailabilityTimeframe timeframe, User user) {
+		return findCarsByTimeframe(timeframe.getStart(), timeframe.getEnd(), user);
 	}
 	
 	@Override
-	public List<Car> findCarsByTimeframe(Timestamp start, Timestamp end) {
+	public List<Car> findCarsByTimeframe(Timestamp start, Timestamp end, User user) {
 		ArrayList<Car> cars = null;
 		
 		String query = "SELECT DISTINCT cr.car_id, cr.user_id, cr.model, cr.price_per_km, cr.mileage, ls.car_id " + 
@@ -120,7 +120,8 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 				"FULL OUTER JOIN lend_session AS ls " + 
 					"ON atf.car_id = ls.car_id " + 
 				"WHERE " + 
-					"? >= atf.start_ " + 
+					"cr.user_id !=? "
+					+ "and ? >= atf.start_ " + 
 					"AND ? <= atf.end_ " + 
 					"AND ((ls.start_ NOT BETWEEN ? AND ? " + 
 						"AND ls.end_ NOT BETWEEN ? AND ?) " + 
@@ -133,12 +134,13 @@ public class CarPostgresDaolmpl extends PostgresBaseDao implements CarDao {
 		
 		try {
 			PreparedStatement ps = connection.prepareStatement(query);
-			ps.setTimestamp(1, start);
-			ps.setTimestamp(2, end);
-			ps.setTimestamp(3, start);
-			ps.setTimestamp(4, end);
-			ps.setTimestamp(5, start);
-			ps.setTimestamp(6, end);
+			ps.setInt(1, user.getUserId());
+			ps.setTimestamp(2, start);
+			ps.setTimestamp(3, end);
+			ps.setTimestamp(4, start);
+			ps.setTimestamp(5, end);
+			ps.setTimestamp(6, start);
+			ps.setTimestamp(7, end);
 			ResultSet resultSet = ps.executeQuery();
 			
 			cars = new ArrayList<Car>();

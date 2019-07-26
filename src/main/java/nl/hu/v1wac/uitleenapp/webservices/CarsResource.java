@@ -82,7 +82,7 @@ public class CarsResource {
 			e.printStackTrace();
 		}
 		
-		ArrayList<Car> cars = (ArrayList<Car>) dataservice.getCarsByTimeframe(start, end);
+		ArrayList<Car> cars = (ArrayList<Car>) dataservice.getCarsByTimeframe(start, end, user);
 		
 		
 		
